@@ -11,7 +11,7 @@ import sys
 import subprocess
 
 # 配置文件路径
-CONFIG_FILE = os.path.join(os.path.dirname(__file__), "bot_config.json")
+CONFIG_FILE = os.path.join(os.path.dirname(__file__), "ws_config.json")
 
 # 依赖列表
 DEPENDENCIES = [
@@ -79,9 +79,11 @@ def setup_wizard() -> dict:
     print("  聊天机器人 - 首次配置")
     print("=" * 50)
     print()
+    print("配置将保存到 ws_config.json")
+    print()
 
     # WebSocket地址
-    print("[1/4] 请输入WebSocket地址")
+    print("[1/3] 请输入WebSocket地址")
     print("示例: ws://127.0.0.1:3001")
     ws_url = input("地址: ").strip()
     if not ws_url:
@@ -90,51 +92,26 @@ def setup_wizard() -> dict:
 
     # Token
     print()
-    print("[2/4] 请输入Token（可选，直接回车跳过）")
+    print("[2/3] 请输入Token（可选，直接回车跳过）")
     token = input("Token: ").strip()
 
     # 管理员QQ
     print()
-    print("[3/4] 请输入管理员QQ号（可选，直接回车跳过）")
+    print("[3/3] 请输入管理员QQ号（可选，直接回车跳过）")
     admin_qq = input("QQ号: ").strip()
-
-    # 提示词设置
-    print()
-    print("[4/4] 设置AI角色提示词")
-    print("-" * 40)
-    print("预设角色:")
-    print("  1. 默认助手 - 友好热心的AI助手")
-    print("  2. 自定义 - 输入你自己的角色设定")
-    print("  3. 跳过 - 使用默认提示词")
-    print("-" * 40)
-
-    prompt_choice = input("选择 (1/2/3): ").strip()
-
-    custom_prompt = None
-    if prompt_choice == "2":
-        print()
-        print("请输入角色设定（多行输入，单独一行输入 'END' 结束）:")
-        lines = []
-        while True:
-            line = input()
-            if line.strip() == "END":
-                break
-            lines.append(line)
-        custom_prompt = "\n".join(lines)
-        print("✓ 已保存自定义提示词")
-    elif prompt_choice == "1":
-        print("✓ 使用默认助手提示词")
 
     config = {
         "ws_url": ws_url,
         "token": token if token else None,
         "admin_qq": int(admin_qq) if admin_qq.isdigit() else None,
-        "custom_prompt": custom_prompt
+        "reconnect_delay": 5,
+        "custom_prompt": None
     }
 
     save_config(config)
     print()
-    print("✓ 配置已保存!")
+    print("✓ 配置已保存到 ws_config.json!")
+    print("  可直接编辑该文件修改配置")
     print()
 
     return config
@@ -170,12 +147,6 @@ def main():
 
     # 创建聊天机器人
     bot = ChatBot()
-
-    # 应用自定义提示词
-    if config.get("custom_prompt"):
-        import chat_prompts
-        chat_prompts.SYSTEM_PROMPT_CHAT = config["custom_prompt"]
-        print("✓ 已加载自定义提示词")
 
     # 消息处理函数
     def on_message(data: dict):
