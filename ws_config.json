@@ -1,0 +1,7 @@
+{
+    "ws_url": "ws://127.0.0.1:3001",
+    "token": null,
+    "admin_qq": null,
+    "reconnect_delay": 5,
+    "custom_prompt": null
+}
