@@ -8,9 +8,52 @@
 import os
 import json
 import sys
+import subprocess
 
 # 配置文件路径
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "bot_config.json")
+
+# 依赖列表
+DEPENDENCIES = [
+    "websocket-client",  # WebSocket客户端
+]
+
+
+def check_and_install_dependencies():
+    """检查并安装缺失的依赖"""
+    missing = []
+
+    for pkg in DEPENDENCIES:
+        # 检查包是否已安装
+        pkg_name = pkg.replace("-", "_")
+        try:
+            __import__(pkg_name)
+        except ImportError:
+            missing.append(pkg)
+
+    if missing:
+        print("=" * 50)
+        print("  检测到缺失依赖，正在安装...")
+        print("=" * 50)
+        print(f"需要安装: {', '.join(missing)}")
+        print()
+
+        for pkg in missing:
+            print(f"正在安装 {pkg}...")
+            try:
+                subprocess.check_call(
+                    [sys.executable, "-m", "pip", "install", pkg],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                print(f"✓ {pkg} 安装成功")
+            except subprocess.CalledProcessError:
+                print(f"✗ {pkg} 安装失败，请手动安装: pip install {pkg}")
+                sys.exit(1)
+
+        print()
+        print("✓ 所有依赖已安装完成!")
+        print()
 
 
 def load_config() -> dict:
@@ -99,6 +142,9 @@ def setup_wizard() -> dict:
 
 def main():
     """主函数"""
+    # 检查并安装依赖
+    check_and_install_dependencies()
+
     # 加载配置
     config = load_config()
 
